@@ -1,6 +1,7 @@
 package com.example.module2
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.example.module2.ui.theme.Module2Theme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +58,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Module2Theme {
-                WaterTracker()
+                ShoppingCartScreen()
             }
 
         }
@@ -69,6 +71,12 @@ data class Contact(
     val phone: String,
     val email: String,
     val city: String,
+)
+
+data class Product(
+    val id: Int,
+    val name: String,
+    val price: Int
 )
 
 private val CONTACTS_LIST = listOf<Contact>(
@@ -484,6 +492,79 @@ fun WaterTracker() {
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
+        }
+    }
+}
+
+@Composable
+fun ShoppingCartScreen() {
+    var products by remember {
+        mutableStateOf(
+            listOf(
+                Product(0, "Товар #1", 100),
+                Product(1, "Товар #2", 150),
+                Product(2, "Товар #3", 56)
+            )
+            )
+    }
+    val context = LocalContext.current
+
+    val totalSum = products.sumOf { it.price }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        for (product in products) {
+            Text(
+                text = "${product.name} - ${product.price} рублей"
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Товаров на сумму: $totalSum рублей",
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val sumBefore = totalSum
+                products = products + Product(
+                    id = products.size,
+                    name = "Товар #${products.size + 1}",
+                    price = (1..100).random()
+                )
+                val sumAfter = products.sumOf { it.price }
+
+                if (sumBefore <= 500 && sumAfter > 500) {
+                    Toast.makeText(
+                        context,
+                        "Доставка бесплатная!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        ) {
+            Text(text = "Добавить товар")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (products.isNotEmpty()) {
+            Button(
+                onClick = {
+                    products = products.dropLast(1)
+                }
+            ) {
+                Text(text = "Удалить товар")
+            }
         }
     }
 }
